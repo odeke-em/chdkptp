@@ -116,6 +116,10 @@ int myusb_bulk_write(usb_dev_handle *dev, int ep, char *bytes, int length,
 // connection data
 // TODO might be more convenient to use this as the meta data and put in a pointer to PTPParams ?
 typedef struct _PTP_USB PTP_USB;
+// TODO - guess this is win only
+#ifndef LIBUSB_PATH_MAX
+#define LIBUSB_PATH_MAX (PATH_MAX + 1)
+#endif
 struct _PTP_USB {
 	usb_dev_handle* handle;
 	int inep;
