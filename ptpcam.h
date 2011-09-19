@@ -124,6 +124,8 @@ struct _PTP_USB {
 	int script_id;
 	int timeout;
 	int connected; // soft check without actually trying to access usb
+	char bus[LIBUSB_PATH_MAX]; // identifies what device this is for
+	char dev[LIBUSB_PATH_MAX]; // TODO this may not work out, libusb on win changes the dev number on reset
 };
 
 /*

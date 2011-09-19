@@ -163,7 +163,7 @@ end
 
 --[[
 t,args=cli:get_opts(args,optspec)
-optspect is an array of option letters 
+optspec is an array of option letters 
 returns table of option values
 plus arg string with recognized opts removed
 TODO should unify command line processing with main.lua args
@@ -344,12 +344,35 @@ cli:add_commands{
 		names={'list'},
 		help='list devices',
 		func=function() 
-			if con:is_connected() then
-				return false,"cannot yet list while connected :("
-			end
 			local msg = ''
-			for num,d in ipairs(chdk.list_devices()) do
-				msg = msg .. string.format("%d: %s %s/%s vendor:%x pid:%x\n",num,d.model,d.bus,d.dev,d.vendor_id,d.product_id)
+			local devs = chdk.list_usb_devices()
+			for i,desc in ipairs(devs) do
+				local lcon = chdku.connection(desc)
+				local usb_info = lcon:get_usb_devinfo()
+				local tempcon = false
+				local status = "CONNECTED"
+				if not lcon:is_connected() then
+					tempcon = true
+					status = "NOT CONNECTED"
+					lcon:connect()
+				end
+				local ptp_info = lcon:get_ptp_devinfo()
+				if not ptp_info then
+					ptp_info = { model = "<unknown>" }
+				end
+
+				if lcon == con then
+					status = status..", CLI"
+				end
+
+				msg = msg .. string.format("%d: %s bus:%s dev:%s vendor:%x pid:%x [%s]\n",
+											i, ptp_info.model,
+											usb_info.bus, usb_info.dev,
+											usb_info.vendor_id, usb_info.product_id,
+											status)
+				if tempcon then
+					lcon:disconnect()
+				end
 			end
 			return true,msg
 		end,
@@ -431,8 +454,25 @@ cli:add_commands{
 	},
 	{
 		names={'connect','c'},
-		help='(re)connect to device',
-		-- TODO support device selection
+		help='connect to device',
+		func=function(self,args) 
+			if con:is_connected() then
+				con:disconnect()
+			end
+			-- TODO temp just connect to the default device for now
+			local devs = chdk.list_usb_devices()
+			if #devs > 0 then
+				con = chdku.connection(devs[1])
+				return con:connect()
+			end
+			return false,"no devices available"
+		end,
+	},
+	--[[
+	-- TODO this isn't useful - on win device name can change on reset ?
+	{
+		names={'reconnect','r'},
+		help='reconnect to current device',
 		func=function(self,args) 
 			if con:is_connected() then
 				con:disconnect()
@@ -440,6 +480,7 @@ cli:add_commands{
 			return con:connect()
 		end,
 	},
+	]]
 	{
 		names={'disconnect','dis'},
 		help='disconnect from device',
@@ -507,8 +548,7 @@ cli:add_commands{
 			con:disconnect()
 			-- sleep locally to avoid clobbering the reboot, and allow time for the camera to come up before trying to connect
 			sys.sleep(3000)
-			
-			
+
 			return con:connect()
 		end,
 	},
