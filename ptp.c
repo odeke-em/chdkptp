@@ -1711,7 +1711,7 @@ int ptp_chdk_upload(char *local_fn, char *remote_fn, PTPParams* params, PTPDevic
   PTPContainer ptp;
   char *buf = NULL;
   FILE *f;
-  unsigned file_len,data_len,file_name_data_len,file_name_len;
+  unsigned file_len,data_len,file_name_len;
 
   PTP_CNT_INIT(ptp);
   ptp.Code=PTP_OC_CHDK;
@@ -1730,21 +1730,11 @@ int ptp_chdk_upload(char *local_fn, char *remote_fn, PTPParams* params, PTPDevic
   fseek(f,0,SEEK_SET);
 
   file_name_len = strlen(remote_fn);
-  // make data word aligned by padding filename with extra nulls
-  // (some ?) vxworks cams seem to barf on multiple calls recv_ptp_data if the preceding ones aren't aligned
-  if(file_name_len & 0x3) {
-	  file_name_data_len = (file_name_len & 0xFFFFFFFC) + 0x4;
-  } else {
-	  file_name_data_len = file_name_len;
-  }
-  data_len = 4 + file_name_data_len + file_len;
+  data_len = 4 + file_name_len + file_len;
   buf = malloc(data_len);
-  memcpy(buf,&file_name_data_len,4);
+  memcpy(buf,&file_name_len,4);
   memcpy(buf+4,remote_fn,file_name_len);
-  if(file_name_len != file_name_data_len) {
-	  memset(buf+4+file_name_len,0,file_name_data_len - file_name_len);
-  }
-  fread(buf+4+file_name_data_len,1,file_len,f);
+  fread(buf+4+file_name_len,1,file_len,f);
 
   fclose(f);
 
