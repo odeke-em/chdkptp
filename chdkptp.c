@@ -1464,17 +1464,6 @@ static const luaL_Reg lua_syslib[] = {
   {NULL, NULL}
 };
 
-/*
-static const luaL_Reg lua_usblib[] = {
-  {"init", luausb_init},
-  {"ibuses", luausb_busiter},
-  {"ibusdevs", luausb_busdeviter},
-  {"open", luausb_open},
-  {"close", luausb_close},
-  {NULL, NULL}
-};
-*/
-
 static int chdkptp_registerlibs(lua_State *L) {
 	/* set up meta table for connection object */
 	luaL_newmetatable(L,CHDK_CONNECTION_META);
