@@ -876,19 +876,36 @@ function con_methods.wait_status(con,opts)
 end
 
 --[[
-TODO temp
-add our methods to connection object meta table
-only needs to be done once
+meta table for wrapped connection object
 ]]
-local bound=false
-function chdku.connection(devspec)
-	local con = chdk.connection(devspec)
-	if not bound then
-		for k,v in pairs(con_methods) do
-			con.__index[k]=v
-		end
-		bound=true
+local con_meta = {
+	__index = function(t,key)
+		return con_methods[key]
 	end
+}
+
+--[[
+proxy connection methods from low level object to chdku
+]]
+local function init_connection_methods()
+	for name,func in pairs(chdk_connection) do
+		if con_methods[name] == nil and type(func) == 'function' then
+			con_methods[name] = function(self,...)
+				return chdk_connection[name](self._con,...)
+			end
+		end
+	end
+end
+
+init_connection_methods()
+
+--[[
+return a connection object wrapped with chdku methods
+]]
+function chdku.connection(devspec)
+	local con = {}
+	setmetatable(con,con_meta)
+	con._con = chdk.connection(devspec)
 	return con
 end
 

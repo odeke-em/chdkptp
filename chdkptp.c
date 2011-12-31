@@ -1411,7 +1411,7 @@ static const luaL_Reg chdklib[] = {
 static int chdk_connection_gc(lua_State *L) {
 	CHDK_CONNECTION_METHOD;
 
-//	printf("collecting connection\n");
+//	printf("collecting connection %s:%s\n",ptp_usb->bus,ptp_usb->dev);
 	if(ptp_usb->connected) {
 //		printf("was connected\n");
 		close_camera(ptp_usb,params,usb_device(ptp_usb->handle));
@@ -1421,7 +1421,7 @@ static int chdk_connection_gc(lua_State *L) {
 }
 
 /*
-methods of the connection object
+methods for connections
 */
 static const luaL_Reg chdkconnection[] = {
   {"connect", chdk_connect},
@@ -1441,8 +1441,6 @@ static const luaL_Reg chdkconnection[] = {
   {"dev_status", chdk_dev_status},
   {"get_ptp_devinfo", chdk_get_ptp_devinfo},
   {"get_usb_devinfo", chdk_get_usb_devinfo}, // does not need to be connected, returns bus and dev at minimum
-  {"__gc", chdk_connection_gc},
-/*  {"__index", chdk_conection_index}, */ // might want to use function instead of mt itself
   {NULL, NULL}
 };
 
@@ -1478,13 +1476,20 @@ static const luaL_Reg lua_usblib[] = {
 */
 
 static int chdkptp_registerlibs(lua_State *L) {
-	luaL_newmetatable(L, CHDK_CONNECTION_META);
-	lua_pushvalue(L, -1);  /* push metatable */
-	lua_setfield(L, -2, "__index");  /* metatable.__index = metatable */
-	luaL_register(L, NULL, chdkconnection);  /* connection methods */
+	/* set up meta table for connection object */
+	luaL_newmetatable(L,CHDK_CONNECTION_META);
+	lua_pushcfunction(L,chdk_connection_gc);
+	lua_setfield(L,-2,"__gc");
 
+	/* register functions that operate on a connection
+	 * lua code can use them to implement OO connection interface
+	*/
+	luaL_register(L, "chdk_connection", chdkconnection);  
+
+	/* register functions that don't require a connection */
 	luaL_register(L, "chdk", chdklib);
 	luaL_register(L, "sys", lua_syslib);
+	
 	// create a table to keep track of connections
 	lua_newtable(L);
 	// metatable for above
