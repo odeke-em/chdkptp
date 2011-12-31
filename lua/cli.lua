@@ -102,18 +102,21 @@ function cli:execute(line)
 	return true,""
 end
 
+function cli:print_status(status,msg) 
+	if not status then
+		errf("%s\n",tostring(msg))
+	elseif msg and string.len(msg) ~= 0 then
+		printf("%s",msg)
+		if string.sub(msg,-1,-1) ~= '\n' then
+			printf("\n")
+		end
+	end
+end
+
 function cli:run()
 	self:prompt()
 	for line in io.lines() do
-		local status,msg = self:execute(line)
-		if not status then
-			errf("%s\n",tostring(msg))
-		elseif msg and string.len(msg) ~= 0 then
-			printf("%s",msg)
-			if string.sub(msg,-1,-1) ~= '\n' then
-				printf("\n")
-			end
-		end
+		self:print_status(self:execute(line))
 		if self.finished then
 			break
 		end
