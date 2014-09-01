@@ -1,0 +1,4 @@
+chdkptp
+*.o
+.dep
+config.mk
