@@ -1253,6 +1253,15 @@ static int chdk_connect(lua_State *L) {
 }
 
 /*
+con:server()
+starts UDP command server
+*/
+
+static int chdk_connect(lua_State *L) {
+  return luaL_error(L,"Not yet implemented");
+}
+
+/*
 disconnect the connection
 note under windows the device does not appear in in chdk.list_usb_devices() for a short time after disconnecting
 */
@@ -1932,6 +1941,7 @@ methods for connections
 */
 static const luaL_Reg chdkconnection[] = {
   {"connect", chdk_connect},
+  {"server", chdk_server},
   {"disconnect", chdk_disconnect},
   {"is_connected", chdk_is_connected},
   {"camera_api_version", chdk_camera_api_version},
