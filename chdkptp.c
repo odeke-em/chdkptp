@@ -1257,7 +1257,7 @@ con:server()
 starts UDP command server
 */
 
-static int chdk_connect(lua_State *L) {
+static int chdk_server(lua_State *L) {
   return luaL_error(L,"Not yet implemented");
 }
 
