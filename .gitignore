@@ -1,4 +1,5 @@
 chdkptp
 *.o
+*.so
 .dep
 config.mk

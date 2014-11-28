@@ -15,6 +15,12 @@ ifeq ($(HOSTPLATFORM),Linux)
 OSTYPE=Linux
 EXE= 
 CD_FREETYPE_LIB=freetype z
+else
+ifeq ($(HOSTPLATFORM),Darwin)
+OSTYPE=Darwin
+EXE= 
+CD_FREETYPE_LIB=freetype z
+endif
 endif
 endif
 
@@ -22,7 +28,7 @@ endif
 EXE_EXTRA=
 
 CC=gcc
-CFLAGS=-DCHDKPTP_OSTYPE=\"$(OSTYPE)\" -Wall
+CFLAGS=-DCHDKPTP_OSTYPE=\"$(OSTYPE)\" -Wall -fPIC
 LDFLAGS=
 #LD=ld
 

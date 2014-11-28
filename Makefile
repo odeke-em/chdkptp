@@ -113,6 +113,7 @@ LDFLAGS+=$(LIB_PATHS) $(patsubst %,-l%,$(LINK_LIBS) $(SYS_LIBS))
 SUBDIRS=lfs
 
 CHDKPTP_EXE=chdkptp$(EXE_EXTRA)$(EXE)
+LIBNAME=libchdkptp.so
 
 EXES=$(CHDKPTP_EXE)
 
@@ -124,6 +125,15 @@ OBJS=$(SRCS:.c=.o)
 $(CHDKPTP_EXE): $(OBJS)
 	$(CC) -o $@ lfs/lfs.o $^ $(LDFLAGS)
 
+ifeq ($(OSTYPE),Darwin)
+so: $(OBJS)
+	$(CC) $^ -shared -Wl,-install_name,$(LIBNAME) -o $(LIBNAME) -lc
+else
+ifeq ($(OSTYPE),Linux)
+so: $(OBJS)
+	$(CC) $^ -shared -Wl,-soname,$(LIBNAME) -o $(LIBNAME) -lc
+endif
+endif
 
 # temp for PTP/IP test code
 ifeq ($(OSTYPE),Windows)
