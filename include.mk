@@ -98,7 +98,7 @@ clean: clean-one clean-recursive
 cleand: cleand-one clean-one cleand-recursive
 
 clean-one:
-	rm -f $(EXES) *.o
+	rm -f $(EXES) *.o *.so
 
 cleand-one:
 	rm -f $(DFILES)
