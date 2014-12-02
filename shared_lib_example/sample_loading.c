@@ -17,7 +17,7 @@
 // Get function pointers in like this:
 // Later during load, refer to them by keyname / name used in the library.
 const char*
-ptp_prop_getvalbyname(PTPParams* params, char* name, uint16_t dpc) = NULL;
+(*ptp_prop_getvalbyname)(PTPParams* params, char* name, uint16_t dpc) = NULL;
 
 static char *error = NULL;
 static void *handle = NULL;
