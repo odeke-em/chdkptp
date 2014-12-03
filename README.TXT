@@ -167,3 +167,13 @@ None of the above is a comprehensive test of chdkptp functionality.
 
 =Running=
 See USAGE.TXT
+
+
+Creating a shared library
+=========================
+Make sure that you have the appropriate config.mk file by copying it from
+'config-sample-your_platform.mk' e.g by:
+> `cat config-sample-your_platform.mk > config.mk`
+
+Generate a *.so linked library that can be used in other programs by running
+`make so && make testso`

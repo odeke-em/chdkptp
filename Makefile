@@ -125,16 +125,17 @@ OBJS=$(SRCS:.c=.o)
 $(CHDKPTP_EXE): $(OBJS)
 	$(CC) -o $@ lfs/lfs.o $^ $(LDFLAGS)
 
-testso: $(LIBNAME) sample_loading.o
+testso: sample_loading.o
+	make so
 	$(CC) $^ -o testso -ldl
 
 ifeq ($(OSTYPE),Darwin)
 so: $(OBJS)
-	$(CC) -DLIB_LINKING $^ -shared -Wl,-install_name,$(LIBNAME) -o $(LIBNAME) -lc
+	$(CC) -DLIB_LINKING $(LDFLAGS) $^ -shared -Wl,-install_name,$(LIBNAME) -o $(LIBNAME) -lc
 else
 ifeq ($(OSTYPE),Linux)
 so: $(OBJS) lfs/lfs.o
-	$(CC) -DLIB_LINKING $^ -shared -Wl,-soname,$(LIBNAME) -o $(LIBNAME) -lc
+	$(CC) -DLIB_LINKING $(LDFLAGS) $^ -shared -Wl,-soname,$(LIBNAME) -o $(LIBNAME) -lc
 endif
 endif
 

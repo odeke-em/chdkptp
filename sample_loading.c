@@ -4,7 +4,7 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#include "../ptp.h"
+#include "ptp.h"
 
 #define handleLoad(handle, funcPtr, funcKey) {\
     funcPtr = dlsym(handle, funcKey);\
@@ -23,7 +23,7 @@ static char *error = NULL;
 static void *handle = NULL;
 
 int main() {
-    handle = dlopen("../libchdkptp.so", RTLD_LAZY);
+    handle = dlopen("./libchdkptp.so", RTLD_LAZY);
     if (handle == NULL) {
         fputs(dlerror(), stderr);
         exit(-1);
@@ -34,7 +34,7 @@ int main() {
     // Sanity check
     assert(_ptp_prop_getvalbyname != NULL);
 
-    printf("ptp_usb_write_func: %p\n", ptp_prop_getvalbyname);
+    printf("ptp_usb_write_func: %p\n", _ptp_prop_getvalbyname);
 
     return 0;
 }
