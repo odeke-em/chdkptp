@@ -2232,7 +2232,7 @@ int exec_lua_string(lua_State *L, const char *luacode) {
 }
 
 
-/*
+#ifndef LIB_LINKING
 int main(int argc, char ** argv)
 {
 	g_argc = argc;
@@ -2256,4 +2256,4 @@ int main(int argc, char ** argv)
 #endif
 	return 0;
 }
-*/
+#endif // LIB_LINKING

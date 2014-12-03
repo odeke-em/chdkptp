@@ -130,11 +130,11 @@ testso: $(LIBNAME) sample_loading.o
 
 ifeq ($(OSTYPE),Darwin)
 so: $(OBJS)
-	$(CC) $^ -shared -Wl,-install_name,$(LIBNAME) -o $(LIBNAME) -lc
+	$(CC) -DLIB_LINKING $^ -shared -Wl,-install_name,$(LIBNAME) -o $(LIBNAME) -lc
 else
 ifeq ($(OSTYPE),Linux)
 so: $(OBJS) lfs/lfs.o
-	$(CC) $^ -shared -Wl,-soname,$(LIBNAME) -o $(LIBNAME) -lc
+	$(CC) -DLIB_LINKING $^ -shared -Wl,-soname,$(LIBNAME) -o $(LIBNAME) -lc
 endif
 endif
 
