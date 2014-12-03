@@ -187,7 +187,7 @@ ptpcam_siginthandler(int signum)
 }
 #endif
 
-static int
+int
 ptp_usb_read_func (unsigned char *bytes, unsigned max_size, void *data)
 {
 	int result=-1;
@@ -233,7 +233,7 @@ ptp_usb_read_func (unsigned char *bytes, unsigned max_size, void *data)
 	}
 }
 
-static short
+short
 ptp_usb_write_func (unsigned char *bytes, unsigned int size, void *data)
 {
 	int result;
@@ -249,7 +249,7 @@ ptp_usb_write_func (unsigned char *bytes, unsigned int size, void *data)
 	}
 }
 
-static int
+int
 ptp_usb_check_int (unsigned char *bytes, unsigned int size, void *data)
 {
 	int result;
@@ -281,7 +281,7 @@ ptpcam_debug (void *data, const char *format, va_list args)
 }
 
 #ifdef CHDKPTP_PTPIP
-static short
+short
 ptp_tcp_write_func (unsigned char *bytes, unsigned int size, void *data)
 {
 	int result;
@@ -298,7 +298,7 @@ ptp_tcp_write_func (unsigned char *bytes, unsigned int size, void *data)
 
 // TODO this is all wrong, we might not get whole packet, or might get part of next
 // need to restructure for a PTP/IP packet oriented read
-static int
+int
 ptp_tcp_read_func (unsigned char *bytes, unsigned max_size, void *data)
 {
 	PTP_CON_STATE *ptp_cs=(PTP_CON_STATE *)data;
@@ -317,7 +317,7 @@ ptp_tcp_read_func (unsigned char *bytes, unsigned max_size, void *data)
 }
 
 // TODO
-static int
+int
 ptp_tcp_check_int (unsigned char *bytes, unsigned int size, void *data)
 {
 	return PTP_RC_OK;
@@ -335,7 +335,7 @@ char my_name[] = {
 };
 
 // TODO
-static int init_event_channel_tcp(PTP_CON_STATE* ptp_cs) {
+int init_event_channel_tcp(PTP_CON_STATE* ptp_cs) {
 	printf("initializing event channel\n");
 	
 	// Create a socket for the command channel
@@ -805,12 +805,12 @@ reset_device (struct usb_device *dev)
 /*
 get pointers out of user data in given arg
 */
-static void get_connection_data(lua_State *L,int narg, PTPParams **params,PTP_CON_STATE **ptp_cs) {
+void get_connection_data(lua_State *L,int narg, PTPParams **params,PTP_CON_STATE **ptp_cs) {
 	*params = (PTPParams *)luaL_checkudata(L,narg,CHDK_CONNECTION_META);
 	*ptp_cs = (PTP_CON_STATE *)((*params)->data);
 }
 
-static void close_connection(PTPParams *params,PTP_CON_STATE *ptp_cs)
+void close_connection(PTPParams *params,PTP_CON_STATE *ptp_cs)
 {
 	if(ptp_cs->connected) {
 		close_camera(ptp_cs,params);
@@ -818,7 +818,7 @@ static void close_connection(PTPParams *params,PTP_CON_STATE *ptp_cs)
 	ptp_cs->connected = 0;
 }
 
-static int check_connection_status_usb(PTP_CON_STATE *ptp_cs) {
+int check_connection_status_usb(PTP_CON_STATE *ptp_cs) {
 	uint16_t devstatus[2] = {0,0};
 	
 	// TODO shouldn't ever be true
@@ -832,7 +832,7 @@ static int check_connection_status_usb(PTP_CON_STATE *ptp_cs) {
 }
 
 // TODO
-static int check_connection_status_tcp(PTP_CON_STATE *ptp_cs) {
+int check_connection_status_tcp(PTP_CON_STATE *ptp_cs) {
 	return 1;
 }
 
@@ -840,7 +840,7 @@ static int check_connection_status_tcp(PTP_CON_STATE *ptp_cs) {
 get dev and bus from table arg
 return 1 on success, 0 on failure leaving rbus and rdev unchanged
 */
-static int get_lua_devspec_usb(lua_State *L, int index, const char **rbus, const char **rdev) {
+int get_lua_devspec_usb(lua_State *L, int index, const char **rbus, const char **rdev) {
 	const char *bus;
 	const char *dev;
 	if(!lua_istable(L,index)) {
@@ -960,7 +960,7 @@ int open_camera_dev_usb(struct usb_device *dev, PTP_CON_STATE *ptp_cs, PTPParams
 /*
 tostring metamethod for errors
 */
-static int api_error_tostring(lua_State *L) {
+int api_error_tostring(lua_State *L) {
 	if(!lua_istable(L,1)) {
 		return luaL_error(L,"expected table");
 	}
@@ -980,7 +980,7 @@ static int api_error_tostring(lua_State *L) {
 /*
 push a new error object
 */
-static int push_api_error(lua_State *L) {
+int push_api_error(lua_State *L) {
 	lua_newtable(L);
 	luaL_getmetatable(L, CHDK_API_ERROR_META);
 	lua_setmetatable(L, -2);
@@ -992,7 +992,7 @@ set stacktrace as field in error object
 allows catching and re-throwing with correct stack
 assumes stack top is error table, leaves it there
 */
-static void api_error_traceback(lua_State *L, int level) {
+void api_error_traceback(lua_State *L, int level) {
 	// borrowed from iuplua.c
 	lua_getglobal(L, "debug");
 	if (!lua_istable(L, -1)) {
@@ -1012,7 +1012,7 @@ static void api_error_traceback(lua_State *L, int level) {
 	lua_setfield(L, -2,"traceback");
 }
 
-static int push_api_error_ptp(lua_State *L,uint16_t code) {
+int push_api_error_ptp(lua_State *L,uint16_t code) {
 	push_api_error(L);
 	api_error_traceback(L,1);
 	lua_pushnumber(L,code);
@@ -1024,7 +1024,7 @@ static int push_api_error_ptp(lua_State *L,uint16_t code) {
 	return 1;
 }
 
-static int push_api_error_misc(lua_State *L,const char* etype,const char *msg,int critical) {
+int push_api_error_misc(lua_State *L,const char* etype,const char *msg,int critical) {
 	push_api_error(L);
 	api_error_traceback(L,1);
 	if(msg) {
@@ -1045,7 +1045,7 @@ create an error object to throw from lua
 sets meta table on passed table, or create new empty table
 err=errlib.new({etype="...",msg="...",ptp_rc=...}[,level])
 */
-static int errlib_new(lua_State *L) {
+int errlib_new(lua_State *L) {
 	if(lua_istable(L,1)) {
 		luaL_getmetatable(L, CHDK_API_ERROR_META);
 		lua_setmetatable(L, 1);
@@ -1058,7 +1058,7 @@ static int errlib_new(lua_State *L) {
 /*
 does errlib.new and throws the result
 */
-static int errlib_throw(lua_State *L) {
+int errlib_throw(lua_State *L) {
 	errlib_new(L);
 	return lua_error(L);
 }
@@ -1067,7 +1067,7 @@ if code isn't PTP_RC_OK, push error return 0
 otherwise return 1
 */
 /*
-static int api_check_ptp(lua_State *L,uint16_t code) {
+int api_check_ptp(lua_State *L,uint16_t code) {
 	if(code == PTP_RC_OK) {
 		return 1;
 	}
@@ -1079,7 +1079,7 @@ static int api_check_ptp(lua_State *L,uint16_t code) {
 /*
 check code and throw if not OK
 */
-static int api_check_ptp_throw(lua_State *L,uint16_t code) {
+int api_check_ptp_throw(lua_State *L,uint16_t code) {
 	if(code != PTP_RC_OK) {
 		push_api_error_ptp(L,code);
 		return lua_error(L);
@@ -1088,7 +1088,7 @@ static int api_check_ptp_throw(lua_State *L,uint16_t code) {
 }
 
 /*
-static void api_set_error(lua_State *L,const char *etype, const char *msg) {
+void api_set_error(lua_State *L,const char *etype, const char *msg) {
 	push_api_error_misc(L,etype,msg,0);
 }
 */
@@ -1096,7 +1096,7 @@ static void api_set_error(lua_State *L,const char *etype, const char *msg) {
 /*
 doesn't actually return, type int to match lua_error() pattern
 */
-static int api_throw_error(lua_State *L,const char *etype, const char *msg) {
+int api_throw_error(lua_State *L,const char *etype, const char *msg) {
 	push_api_error_misc(L,etype,msg,0);
 	return lua_error(L);
 }
@@ -1104,7 +1104,7 @@ static int api_throw_error(lua_State *L,const char *etype, const char *msg) {
 /*
 throw "critical" error - for internal errors, bad args etc, triggers stack trace by default
 */
-static int api_throw_error_critical(lua_State *L,const char *etype, const char *msg) {
+int api_throw_error_critical(lua_State *L,const char *etype, const char *msg) {
 	push_api_error_misc(L,etype,msg,1);
 	return lua_error(L);
 }
@@ -1127,7 +1127,7 @@ New connections start disconnected.
 An existing connection may or may not be connected
 if devinfo is absent, the dummy connection is returned
 */
-static int chdk_connection(lua_State *L) {
+int chdk_connection(lua_State *L) {
 	PTP_CON_STATE *ptp_cs;
 	PTPParams *params;
 	const char *bus="dummy";
@@ -1208,7 +1208,7 @@ static int chdk_connection(lua_State *L) {
 	return 1;
 }
 
-static int connect_cam_usb(lua_State *L, PTPParams *params, PTP_CON_STATE *ptp_cs) {
+int connect_cam_usb(lua_State *L, PTPParams *params, PTP_CON_STATE *ptp_cs) {
 	struct usb_device *dev=find_device_by_path(ptp_cs->usb.bus,ptp_cs->usb.dev);
 	if(!dev) {
 		return api_throw_error(L,"connect_no_dev","no matching device");
@@ -1221,7 +1221,7 @@ static int connect_cam_usb(lua_State *L, PTPParams *params, PTP_CON_STATE *ptp_c
 		return api_throw_error(L,"connect_fail","connection failed");
 	}
 }
-static int connect_cam_tcp(lua_State *L, PTPParams *params, PTP_CON_STATE *ptp_cs) {
+int connect_cam_tcp(lua_State *L, PTPParams *params, PTP_CON_STATE *ptp_cs) {
 #ifdef CHDKPTP_PTPIP
 	if(!init_ptp_tcp(params,ptp_cs)) {
 		close_camera_tcp(ptp_cs,params); // TODO should clean up any partially open stuff
@@ -1237,7 +1237,7 @@ static int connect_cam_tcp(lua_State *L, PTPParams *params, PTP_CON_STATE *ptp_c
 con:connect()
 throws on error or if already connected
 */
-static int chdk_connect(lua_State *L) {
+int chdk_connect(lua_State *L) {
 	CHDK_CONNECTION_METHOD;
 	
 	// TODO might want to disconnect/reconnect, or check real connection status ? or options
@@ -1257,7 +1257,7 @@ con:server()
 starts UDP command server
 */
 
-static int chdk_server(lua_State *L) {
+int chdk_server(lua_State *L) {
   return luaL_error(L,"Not yet implemented");
 }
 
@@ -1265,14 +1265,14 @@ static int chdk_server(lua_State *L) {
 disconnect the connection
 note under windows the device does not appear in in chdk.list_usb_devices() for a short time after disconnecting
 */
-static int chdk_disconnect(lua_State *L) {
+int chdk_disconnect(lua_State *L) {
   	CHDK_CONNECTION_METHOD;
 
 	close_connection(params,ptp_cs);
 	return 0;
 }
 
-static int chdk_is_connected(lua_State *L) {
+int chdk_is_connected(lua_State *L) {
   	CHDK_CONNECTION_METHOD;
 	// TODO this should probably be more consistent over other PTP calls, #41
 	// flag says we are connected, check usb and update flag
@@ -1290,7 +1290,7 @@ static int chdk_is_connected(lua_State *L) {
 // major, minor = chdk.camera_api_version()
 // TODO double return is annoying
 // TODO we could just get this when we connect
-static int chdk_camera_api_version(lua_State *L) {
+int chdk_camera_api_version(lua_State *L) {
   	CHDK_CONNECTION_METHOD;
 	CHDK_ENSURE_CONNECTED;
 	int major,minor;
@@ -1302,7 +1302,7 @@ static int chdk_camera_api_version(lua_State *L) {
 	return 2;
 }
 
-static int chdk_host_api_version(lua_State *L) {
+int chdk_host_api_version(lua_State *L) {
 	lua_newtable(L);
 	lua_pushnumber(L,PTP_CHDK_VERSION_MAJOR);
 	lua_setfield(L, -2, "MAJOR");
@@ -1311,7 +1311,7 @@ static int chdk_host_api_version(lua_State *L) {
 	return 1;
 }
 
-static int chdk_program_version(lua_State *L) {
+int chdk_program_version(lua_State *L) {
 	lua_newtable(L);
 	lua_pushnumber(L,CHDKPTP_VERSION_MAJOR);
 	lua_setfield(L, -2, "MAJOR");
@@ -1345,7 +1345,7 @@ on compile error, thrown etype='execlua_compile'
 on script running, thrown etype='execlua_scriptrun'
 con:get_script_id() will return the id of the started script
 */
-static int chdk_execlua(lua_State *L) {
+int chdk_execlua(lua_State *L) {
   	CHDK_CONNECTION_METHOD;
 	CHDK_ENSURE_CONNECTED;
 
@@ -1378,7 +1378,7 @@ push a new table onto the stack
 }
 TODO may want to include interface/config info
 */
-static void push_usb_dev_info(lua_State *L,struct usb_device *dev) {
+void push_usb_dev_info(lua_State *L,struct usb_device *dev) {
 	lua_createtable(L,0,4);
 	lua_pushstring(L, dev->bus->dirname);
 	lua_setfield(L, -2, "bus");
@@ -1390,7 +1390,7 @@ static void push_usb_dev_info(lua_State *L,struct usb_device *dev) {
 	lua_setfield(L, -2, "product_id");
 }
 
-static int chdk_list_usb_devices(lua_State *L) {
+int chdk_list_usb_devices(lua_State *L) {
 	struct usb_bus *bus;
 	struct usb_device *dev;
 	int found=0;
@@ -1416,7 +1416,7 @@ static int chdk_list_usb_devices(lua_State *L) {
 con:upload(src,dst)
 throws on error
 */
-static int chdk_upload(lua_State *L) {
+int chdk_upload(lua_State *L) {
   	CHDK_CONNECTION_METHOD;
 	CHDK_ENSURE_CONNECTED;
 	char *src = (char *)luaL_checkstring(L,2);
@@ -1431,7 +1431,7 @@ static int chdk_upload(lua_State *L) {
 con:download(src,dst)
 throws on error
 */
-static int chdk_download(lua_State *L) {
+int chdk_download(lua_State *L) {
   	CHDK_CONNECTION_METHOD;
 	CHDK_ENSURE_CONNECTED;
 	char *src = (char *)luaL_checkstring(L,2);
@@ -1452,7 +1452,7 @@ isready:
 imgnum:
 	image number if data is available, otherwise 0
 */
-static int chdk_capture_ready(lua_State *L) {
+int chdk_capture_ready(lua_State *L) {
 	CHDK_CONNECTION_METHOD;
 	CHDK_ENSURE_CONNECTED;
 	int isready = 0;
@@ -1478,7 +1478,7 @@ chunk:
 }
 throws error on error
 */
-static int chdk_capture_get_chunk(lua_State *L) {
+int chdk_capture_get_chunk(lua_State *L) {
 	CHDK_CONNECTION_METHOD;
 	CHDK_ENSURE_CONNECTED;
 	int fmt = (unsigned)luaL_checknumber(L,2);
@@ -1513,7 +1513,7 @@ dest is
 "pointer" userdata to pass on to C elsewhere
 default is string
 */
-static int chdk_getmem(lua_State *L) {
+int chdk_getmem(lua_State *L) {
   	CHDK_CONNECTION_METHOD;
 	CHDK_ENSURE_CONNECTED;
 
@@ -1541,7 +1541,7 @@ TODO
 status[,msg]=con:setmem(address,data)
 data is a number (to bet set as a 32 bit int) or string
 */
-static int chdk_setmem(lua_State *L) {
+int chdk_setmem(lua_State *L) {
 	return api_throw_error(L,"not_implemented","not implemented yet, use lua poke()");
 }
 
@@ -1551,7 +1551,7 @@ call a pointer directly from ptp code.
 useful if lua is not available
 args must be numbers, or pointers set up on the cam by other means
 */
-static int chdk_call_function(lua_State *L) {
+int chdk_call_function(lua_State *L) {
 	CHDK_CONNECTION_METHOD;
 	CHDK_ENSURE_CONNECTED;
 	int args[11];
@@ -1571,7 +1571,7 @@ static int chdk_call_function(lua_State *L) {
 	return 1;
 }
 
-static int chdk_script_support(lua_State *L) {
+int chdk_script_support(lua_State *L) {
   	CHDK_CONNECTION_METHOD;
 	CHDK_ENSURE_CONNECTED;
 	unsigned status = 0;
@@ -1585,7 +1585,7 @@ static int chdk_script_support(lua_State *L) {
 status=con:script_status()
 status={run:bool,msg:bool} or throws error
 */
-static int chdk_script_status(lua_State *L) {
+int chdk_script_status(lua_State *L) {
   	CHDK_CONNECTION_METHOD;
 	CHDK_ENSURE_CONNECTED;
 	unsigned status;
@@ -1604,7 +1604,7 @@ lbuf=con:get_live_data(lbuf,flags)
 lbuf - lbuf to re-use, will be created if nil
 throws error on failure
 */
-static int chdk_get_live_data(lua_State *L) {
+int chdk_get_live_data(lua_State *L) {
   	CHDK_CONNECTION_METHOD;
 	CHDK_ENSURE_CONNECTED;
 	lBuf_t *buf = lbuf_getlbuf(L,2);
@@ -1634,7 +1634,7 @@ static int chdk_get_live_data(lua_State *L) {
 }
 
 // TODO these assume numbers are 0 based and contiguous 
-static const char* script_msg_type_to_name(unsigned type_id) {
+const char* script_msg_type_to_name(unsigned type_id) {
 	const char *names[]={"none","error","return","user"};
 	if(type_id >= sizeof(names)/sizeof(names[0])) {
 		return "unknown_msg_type";
@@ -1642,7 +1642,7 @@ static const char* script_msg_type_to_name(unsigned type_id) {
 	return names[type_id];
 }
 
-static const char* script_msg_data_type_to_name(unsigned type_id) {
+const char* script_msg_data_type_to_name(unsigned type_id) {
 	const char *names[]={"unsupported","nil","boolean","integer","string","table"};
 	if(type_id >= sizeof(names)/sizeof(names[0])) {
 		return "unknown_msg_subtype";
@@ -1650,7 +1650,7 @@ static const char* script_msg_data_type_to_name(unsigned type_id) {
 	return names[type_id];
 }
 
-static const char* script_msg_error_type_to_name(unsigned type_id) {
+const char* script_msg_error_type_to_name(unsigned type_id) {
 	const char *names[]={"none","compile","runtime"};
 	if(type_id >= sizeof(names)/sizeof(names[0])) {
 		return "unknown_error_subtype";
@@ -1673,7 +1673,7 @@ throws error on error
 use chdku con:wait_status or chdku con:wait_msg to wait for messages
 */
 
-static int chdk_read_msg(lua_State *L) {
+int chdk_read_msg(lua_State *L) {
   	CHDK_CONNECTION_METHOD;
 	CHDK_ENSURE_CONNECTED;
 
@@ -1728,7 +1728,7 @@ con:write_msg(msgstring,[script_id])
 script_id defaults to the most recently started script
 throws error on falure, error.etype can be used to identify full queue etc
 */
-static int chdk_write_msg(lua_State *L) {
+int chdk_write_msg(lua_State *L) {
   	CHDK_CONNECTION_METHOD;
 	CHDK_ENSURE_CONNECTED;
 	const char *str;
@@ -1763,7 +1763,7 @@ script ids start at 1, and will be reset if the camera reboots
 script id will be false if the last script request failed to reach the camera or no script has yet been run
 scripts that encounter a syntax error still generate an id
 */
-static int chdk_get_script_id(lua_State *L) {
+int chdk_get_script_id(lua_State *L) {
   	CHDK_CONNECTION_METHOD;
 	// TODO do we want to check connections status ?
 	if(ptp_cs->script_id) {
@@ -1778,7 +1778,7 @@ static int chdk_get_script_id(lua_State *L) {
 TEMP testing
 get_status_result,status[0],status[1]=con:dev_status()
 */
-static int chdk_dev_status(lua_State *L) {
+int chdk_dev_status(lua_State *L) {
   	CHDK_CONNECTION_METHOD;
 	uint16_t devstatus[2] = {0,0};
 	int r = usb_ptp_get_device_status(ptp_cs,devstatus);
@@ -1801,7 +1801,7 @@ more fields may be added later
 serial number may be NULL (=unset in table)
 version does not match canon firmware version (e.g. d10 100a = "1-6.0.1.0")
 */
-static int chdk_get_ptp_devinfo(lua_State *L) {
+int chdk_get_ptp_devinfo(lua_State *L) {
 	CHDK_CONNECTION_METHOD;
 	// don't actually need to be connected to get this, but ensures we have valid data
 	CHDK_ENSURE_CONNECTED;
@@ -1840,7 +1840,7 @@ dev_info = {
 	guid="guid" -- binary 16 byte GUID from cam
 }
 */
-static int chdk_get_con_devinfo(lua_State *L) {
+int chdk_get_con_devinfo(lua_State *L) {
 	CHDK_CONNECTION_METHOD;
 	// TODO
 	if(ptp_cs->con_type == PTP_CON_USB) {
@@ -1873,12 +1873,12 @@ static int chdk_get_con_devinfo(lua_State *L) {
 }
 
 // TEMP TESTING
-static int chdk_get_conlist(lua_State *L) {
+int chdk_get_conlist(lua_State *L) {
 	lua_getfield(L,LUA_REGISTRYINDEX,CHDK_CONNECTION_LIST);
 	return 1;
 }
 
-static int chdk_reset_device(lua_State *L) {
+int chdk_reset_device(lua_State *L) {
 	const char *busname, *devname;
 	if(get_lua_devspec_usb(L,1,&busname,&devname)) {
 		struct usb_device *dev = find_device_by_path(busname,devname);
@@ -1896,7 +1896,7 @@ static int chdk_reset_device(lua_State *L) {
 /*
 most functions throw an error on failure
 */
-static const luaL_Reg chdklib[] = {
+const luaL_Reg chdklib[] = {
   {"connection", chdk_connection},
   {"host_api_version", chdk_host_api_version},
   {"program_version", chdk_program_version},
@@ -1906,7 +1906,7 @@ static const luaL_Reg chdklib[] = {
   {NULL, NULL}
 };
 
-static int chdk_connection_gc(lua_State *L) {
+int chdk_connection_gc(lua_State *L) {
 	CHDK_CONNECTION_METHOD;
 
 	//printf("collecting connection %s:%s\n",ptp_cs->usb.bus,ptp_cs->usb.dev);
@@ -1920,13 +1920,13 @@ static int chdk_connection_gc(lua_State *L) {
 	return 0;
 }
 
-static int chdk_reset_counters(lua_State *L) {
+int chdk_reset_counters(lua_State *L) {
 	CHDK_CONNECTION_METHOD;
 	ptp_cs->write_count = ptp_cs->read_count = 0;
 	return 0;
 }
 
-static int chdk_get_counters(lua_State *L) {
+int chdk_get_counters(lua_State *L) {
 	CHDK_CONNECTION_METHOD;
 	lua_createtable(L,0,2);
 	lua_pushnumber(L,ptp_cs->write_count);
@@ -1939,7 +1939,7 @@ static int chdk_get_counters(lua_State *L) {
 /*
 methods for connections
 */
-static const luaL_Reg chdkconnection[] = {
+const luaL_Reg chdkconnection[] = {
   {"connect", chdk_connect},
   {"server", chdk_server},
   {"disconnect", chdk_disconnect},
@@ -1971,7 +1971,7 @@ static const luaL_Reg chdkconnection[] = {
 sys.sleep(ms)
 NOTE this should not be used from gui code, since it blocks the whole gui
 */
-static int syslib_sleep(lua_State *L) {
+int syslib_sleep(lua_State *L) {
 	unsigned ms=luaL_checknumber(L,1);
 	// deal with the differences in sleep, usleep and windows Sleep
 	if(ms > 1000) {
@@ -1982,12 +1982,12 @@ static int syslib_sleep(lua_State *L) {
 	return 0;
 }
 
-static int syslib_ostype(lua_State *L) {
+int syslib_ostype(lua_State *L) {
 	lua_pushstring(L,CHDKPTP_OSTYPE);
 	return 1;
 }
 
-static int syslib_gettimeofday(lua_State *L) {
+int syslib_gettimeofday(lua_State *L) {
 	struct timeval tv;
 	gettimeofday(&tv,NULL);
 	lua_pushnumber(L,tv.tv_sec);
@@ -1996,7 +1996,7 @@ static int syslib_gettimeofday(lua_State *L) {
 }
 
 #ifdef CHDKPTP_READLINE
-static int readlinelib_line(lua_State *L) {
+int readlinelib_line(lua_State *L) {
 	const char *prompt=luaL_optstring(L,1,NULL);
 	char *line=readline(prompt);
 	if(line) {
@@ -2007,7 +2007,7 @@ static int readlinelib_line(lua_State *L) {
 	}
 	return 1;
 }
-static int readlinelib_add_history(lua_State *L) {
+int readlinelib_add_history(lua_State *L) {
 	const char *str=luaL_checkstring(L,1);
 	char *buf=malloc(strlen(str)+1);
 	strcpy(buf,str);
@@ -2019,13 +2019,13 @@ static int readlinelib_add_history(lua_State *L) {
 /*
 global copies of argc, argv for lua
 */
-static int g_argc;
-static char **g_argv;
+int g_argc;
+char **g_argv;
 
 /*
 get argv[0]
 */
-static int syslib_getcmd(lua_State *L) {
+int syslib_getcmd(lua_State *L) {
 	lua_pushstring(L,g_argv[0]);
 	return 1;
 }
@@ -2033,7 +2033,7 @@ static int syslib_getcmd(lua_State *L) {
 get command line arguments as an array
 args=sys.getargs()
 */
-static int syslib_getargs(lua_State *L) {
+int syslib_getargs(lua_State *L) {
 	int i;
 	lua_createtable(L,g_argc-1,0);
 // make the command line args available in lua
@@ -2047,7 +2047,7 @@ static int syslib_getargs(lua_State *L) {
 /*
 val=sys.getenv("name")
 */
-static int syslib_getenv(lua_State *L) {
+int syslib_getenv(lua_State *L) {
 	const char *e = getenv(luaL_checkstring(L,1));
 	if(e) {
 		lua_pushstring(L,e);
@@ -2056,16 +2056,16 @@ static int syslib_getenv(lua_State *L) {
 	return 0;
 }
 
-static int corevar_set_verbose(lua_State *L) {
+int corevar_set_verbose(lua_State *L) {
 	verbose = luaL_checknumber(L,1);
 	return 0;
 }
-static int corevar_get_verbose(lua_State *L) {
+int corevar_get_verbose(lua_State *L) {
 	lua_pushnumber(L,verbose);
 	return 1;
 }
 
-static const luaL_Reg lua_syslib[] = {
+const luaL_Reg lua_syslib[] = {
   {"sleep", syslib_sleep},
   {"ostype", syslib_ostype},
   {"gettimeofday", syslib_gettimeofday},
@@ -2075,7 +2075,7 @@ static const luaL_Reg lua_syslib[] = {
   {NULL, NULL}
 };
 #ifdef CHDKPTP_READLINE
-static const luaL_Reg lua_readlinelib[] = {
+const luaL_Reg lua_readlinelib[] = {
   {"line",readlinelib_line},
   {"add_history",readlinelib_add_history},
   {NULL, NULL}
@@ -2083,16 +2083,16 @@ static const luaL_Reg lua_readlinelib[] = {
 #endif
 
 // getters/setters for variables exposed to lua
-static const luaL_Reg lua_corevar[] = {
+const luaL_Reg lua_corevar[] = {
   {"set_verbose", corevar_set_verbose},
   {"get_verbose", corevar_get_verbose},
   {NULL, NULL}
 };
 
-static int gui_inited;
+int gui_inited;
 
 // TODO we should allow loading IUP and CD with require
-static int guisys_init(lua_State *L) {
+int guisys_init(lua_State *L) {
 #ifdef CHDKPTP_IUP
 	if(!gui_inited) {
 		gui_inited = 1;
@@ -2113,7 +2113,7 @@ static int guisys_init(lua_State *L) {
 #endif
 }
 
-static int uninit_gui_libs(lua_State *L) {
+int uninit_gui_libs(lua_State *L) {
 #ifdef CHDKPTP_IUP
 	if(gui_inited) {
 #ifdef CHDKPTP_CD
@@ -2127,7 +2127,7 @@ static int uninit_gui_libs(lua_State *L) {
 	return 0;
 }
 
-static int guisys_caps(lua_State *L) {
+int guisys_caps(lua_State *L) {
 	lua_newtable(L);
 #ifdef CHDKPTP_IUP
 	lua_pushboolean(L,1);
@@ -2146,7 +2146,7 @@ static int guisys_caps(lua_State *L) {
 	return 1;
 }
 
-static void init_ptp_codes(lua_State *L) {
+void init_ptp_codes(lua_State *L) {
 	lua_newtable(L);
 	const PTPErrorDef *p;
 	int i;
@@ -2157,20 +2157,20 @@ static void init_ptp_codes(lua_State *L) {
 	lua_setglobal(L,"ptp");
 }
 
-static const luaL_Reg lua_guisyslib[] = {
+const luaL_Reg lua_guisyslib[] = {
   {"init", guisys_init},
   {"caps", guisys_caps},
   {NULL, NULL}
 };
 
-static const luaL_Reg lua_errlib[] = {
+const luaL_Reg lua_errlib[] = {
   {"new", errlib_new},
   {"throw", errlib_throw},
   {NULL, NULL}
 };
 
 
-static int chdkptp_registerlibs(lua_State *L) {
+int chdkptp_registerlibs(lua_State *L) {
 	/* set up meta table for error object */
 	luaL_newmetatable(L,CHDK_API_ERROR_META);
 	lua_pushcfunction(L,api_error_tostring);
@@ -2214,7 +2214,7 @@ static int chdkptp_registerlibs(lua_State *L) {
 	return 1;
 }
 
-static int exec_lua_string(lua_State *L, const char *luacode) {
+int exec_lua_string(lua_State *L, const char *luacode) {
 	int r;
 	r=luaL_loadstring(L,luacode);
 	if(r) {
@@ -2232,12 +2232,12 @@ static int exec_lua_string(lua_State *L, const char *luacode) {
 }
 
 
-/* main program  */
+/*
 int main(int argc, char ** argv)
 {
 	g_argc = argc;
 	g_argv = argv;
-	/* register signal handlers */
+	// register signal handlers
 //	signal(SIGINT, ptpcam_siginthandler);
 	usb_init();
 	lua_State *L = luaL_newstate();
@@ -2256,4 +2256,4 @@ int main(int argc, char ** argv)
 #endif
 	return 0;
 }
-
+*/
